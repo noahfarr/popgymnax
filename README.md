@@ -4,7 +4,7 @@
     </a>
 </p>
 
-# popgymnax: Partially Observable Process Gym in JAX
+# PopGymnax: Partially Observable Process Gym in JAX
 
 popgymnax is a fork of [POPJym](https://github.com/EdanToledo/popjym) (itself a JAX
 port of [POPGym](https://openreview.net/forum?id=chDrutUTs0K)) that fixes a set of

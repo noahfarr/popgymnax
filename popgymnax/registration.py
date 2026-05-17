@@ -1,5 +1,5 @@
 # flake8: noqa
-from popjym.environments import (
+from popgymnax.environments import (
     AutoencodeEasy,
     AutoencodeHard,
     AutoencodeMedium,
@@ -126,6 +126,14 @@ def make(env_id: str, **env_kwargs):
         env = RepeatPreviousHard(**env_kwargs)
     else:
         raise ValueError("Environment ID is not registered.")
+
+    if getattr(env, "obs_requires_prev_action", False):
+        from popgymnax.wrappers import AliasPrevActionV2
+        print(
+            f"[popgymnax] {env_id} declares obs_requires_prev_action=True; "
+            f"auto-wrapping with AliasPrevActionV2 (observation includes prev action)."
+        )
+        env = AliasPrevActionV2(env)
 
     return env, env.default_params
 

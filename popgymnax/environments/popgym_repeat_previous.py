@@ -38,11 +38,11 @@ class RepeatPrevious(environment.Environment):
         reward = 0
 
         reward = jnp.where(
-            state.cards[state.timestep - self.k] == action, reward_scale, -reward_scale
+            state.cards[state.timestep - self.k + 1] == action, reward_scale, -reward_scale
         )
-        reward = jnp.where(state.timestep < self.k, 0, reward)
+        reward = jnp.where(state.timestep < self.k - 1, 0, reward)
         new_state = EnvState(state.timestep + 1, state.cards)
-        terminated = new_state.timestep == num_cards
+        terminated = new_state.timestep == num_cards - 1
         obs = self.get_obs(new_state)
 
         return obs, new_state, reward, terminated, {}

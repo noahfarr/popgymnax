@@ -19,6 +19,8 @@ class EnvParams:
 
 
 class MultiarmedBandit(environment.Environment):
+    obs_requires_prev_action = True
+
     def __init__(self, num_bandits=10, episode_length=200):
         super().__init__()
         self.num_bandits = num_bandits
@@ -41,7 +43,7 @@ class MultiarmedBandit(environment.Environment):
         new_state = EnvState(timestep=state.timestep + 1, payouts=state.payouts)
         terminated = new_state.timestep >= self.episode_length
 
-        return obs, new_state, reward, terminated, {}
+        return obs, new_state, reward, terminated, {"bandits": state.payouts}
 
     def reset_env(self, key: chex.PRNGKey, params: EnvParams) -> Tuple[chex.Array, EnvState]:
         """Performs resetting of environment."""

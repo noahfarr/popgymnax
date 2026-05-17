@@ -52,7 +52,6 @@ class NoisyStatelessCartPole(environment.Environment):
         self, key: chex.PRNGKey, state: EnvState, action: int, params: EnvParams
     ) -> Tuple[chex.Array, EnvState, float, bool, dict]:
         """Performs step transitions in the environment."""
-        prev_terminal = self.is_terminal(state, params)
         force = params.force_mag * action - params.force_mag * (1 - action)
         costheta = jnp.cos(state.theta)
         sintheta = jnp.sin(state.theta)
@@ -71,9 +70,7 @@ class NoisyStatelessCartPole(environment.Environment):
         theta = state.theta + params.tau * state.theta_dot
         theta_dot = state.theta_dot + params.tau * thetaacc
 
-        # Important: Reward is based on termination is previous step transition
-        reward = 1.0 - prev_terminal
-        reward = self.reward_transform(params, reward)
+        reward = 1.0 / self.max_steps_in_episode
 
         # Update state dict and evaluate termination conditions
         state = EnvState(x, x_dot, theta, theta_dot, state.time + 1)
@@ -86,9 +83,6 @@ class NoisyStatelessCartPole(environment.Environment):
             done,
             {"discount": self.discount(state, params)},
         )
-
-    def reward_transform(self, params: EnvParams, reward: float):
-        return jnp.where(jnp.isclose(reward, 0), -1.0, 1.0 / self.max_steps_in_episode)
 
     def reset_env(self, key: chex.PRNGKey, params: EnvParams) -> Tuple[chex.Array, EnvState]:
         """Performs resetting of environment."""
@@ -105,11 +99,14 @@ class NoisyStatelessCartPole(environment.Environment):
 
     def get_obs(self, key: chex.PRNGKey, state: EnvState, params: EnvParams) -> chex.Array:
         """Applies observation function to state."""
-        obs = (
-            jnp.array([state.x, state.theta])
-            + jax.random.normal(key, shape=(2,)) * self.noise_sigma
-        )
-        obs = jnp.clip(obs, self.observation_space(params).low, self.observation_space(params).high)
+        obs = jnp.array([state.x, state.theta])
+        if self.noise_sigma > 0:
+            obs = obs + jax.random.normal(key, shape=(2,)) * self.noise_sigma
+            obs = jnp.clip(
+                obs,
+                self.observation_space(params).low,
+                self.observation_space(params).high,
+            )
         return obs
 
     def is_terminal(self, state: EnvState, params: EnvParams) -> bool:

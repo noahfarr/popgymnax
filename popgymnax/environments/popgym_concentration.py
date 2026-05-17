@@ -21,6 +21,8 @@ class EnvParams:
 
 
 class Concentration(environment.Environment):
+    obs_requires_prev_action = True
+
     def __init__(self, num_decks=1, num_types=2):
         super().__init__()
         self.decksize = 52
@@ -28,8 +30,8 @@ class Concentration(environment.Environment):
         self.num_decks = num_decks
         self.num_types = num_types
         self.num_cards = self.decksize * self.num_decks
-        self.episode_length = jnp.ceil(
-            2 * self.num_cards - (self.num_cards / (2.0 * self.num_cards - 1))
+        self.episode_length = int(
+            jnp.ceil(2 * self.num_cards - (self.num_cards / (2.0 * self.num_cards - 1)))
         )
         self.success_reward_scale = 1.0 / (self.num_cards // 2)
         self.failure_reward_scale = -1.0 / (self.episode_length)
@@ -55,7 +57,7 @@ class Concentration(environment.Environment):
         # IF TRYING CARD ALREADY UP
         reward = jnp.where(
             trying_card_already_up,
-            jnp.sum(new_in_play) * self.failure_reward_scale,  # WHY IS IT SCALED BY NUM IN PLAY?
+            jnp.sum(new_in_play) * self.failure_reward_scale,
             0.0,
         )
         new_in_play = jnp.where(trying_card_already_up, jnp.zeros_like(new_in_play), new_in_play)

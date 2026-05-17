@@ -102,7 +102,7 @@ class NoisyStatelessPendulum(environment.Environment):
 
     def get_obs(self, key: chex.PRNGKey, state: EnvState, params: EnvParams) -> chex.Array:
         """Return angle in polar coordinates and change."""
-        return (
+        obs = (
             jnp.array(
                 [
                     jnp.cos(state.theta),
@@ -112,6 +112,7 @@ class NoisyStatelessPendulum(environment.Environment):
             ).squeeze()
             + jax.random.normal(key, shape=(2,)) * self.noise_sigma
         )
+        return jnp.clip(obs, -1.0, 1.0)
 
     def is_terminal(self, state: EnvState, params: EnvParams) -> bool:
         """Check whether state is terminal."""

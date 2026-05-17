@@ -60,7 +60,7 @@ class NoisyStatelessMetaCartPole(environment.Environment):
         # env_obs_re, env_state_re = self.env.reset_env(key_reset, params.env_params)
         env_obs_re, env_state_re = state.init_obs, state.init_state
 
-        env_state = jax.tree_map(
+        env_state = jax.tree.map(
             lambda x, y: jax.lax.select(env_done, x, y), env_state_re, env_state_st
         )
         env_obs = jax.lax.select(env_done, env_obs_re, env_obs_st)

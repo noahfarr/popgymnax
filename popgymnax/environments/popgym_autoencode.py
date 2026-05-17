@@ -18,7 +18,7 @@ class EnvParams:
     pass
 
 
-class RepeatFirst(environment.Environment):
+class Autoencode(environment.Environment):
     def __init__(self, num_decks=1):
         super().__init__()
         self.num_suits = 4
@@ -32,12 +32,26 @@ class RepeatFirst(environment.Environment):
     def step_env(
         self, key: chex.PRNGKey, state: EnvState, action: int, params: EnvParams
     ) -> Tuple[chex.Array, EnvState, float, bool, dict]:
-
         num_cards = self.decksize * self.num_decks
-        reward_scale = 1.0 / (num_cards - 1.0)
-        reward = jnp.where(state.cards[0] == action, reward_scale, -reward_scale)
+        reward = 0
+
+        reward_scale = 1.0 / (num_cards)
+
+        terminated = state.timestep == num_cards * 2 - 2
+        play = state.timestep >= num_cards - 1
+
+        reward = jnp.where(
+            jnp.flip(state.cards, axis=0)[state.timestep - (num_cards - 1)] == action,
+            reward_scale,
+            -reward_scale,
+        )
+        reward = jnp.where(
+            play,
+            reward,
+            0,
+        )
+
         new_state = EnvState(state.timestep + 1, state.cards)
-        terminated = new_state.timestep == num_cards
         obs = self.get_obs(new_state)
 
         return obs, new_state, reward, terminated, {}
@@ -56,8 +70,11 @@ class RepeatFirst(environment.Environment):
 
     def get_obs(self, state: EnvState) -> chex.Array:
         """Returns observation from the state."""
-        obs = jnp.zeros((self.num_suits,))
-        obs = obs.at[state.cards[state.timestep % (self.decksize * self.num_decks)]].set(1)
+        num_cards = self.decksize * self.num_decks
+        play = state.timestep >= num_cards
+        play_obs = jnp.zeros((self.num_suits,))
+        watch_obs = play_obs.at[state.cards[state.timestep % num_cards]].set(1)
+        obs = jnp.where(play, play_obs, watch_obs)
         return obs
 
     def action_space(self, params: Optional[EnvParams] = None) -> spaces.Discrete:
@@ -74,16 +91,16 @@ class RepeatFirst(environment.Environment):
         )
 
 
-class RepeatFirstEasy(RepeatFirst):
+class AutoencodeEasy(Autoencode):
     def __init__(self):
         super().__init__(num_decks=1)
 
 
-class RepeatFirstMedium(RepeatFirst):
+class AutoencodeMedium(Autoencode):
     def __init__(self):
-        super().__init__(num_decks=8)
+        super().__init__(num_decks=2)
 
 
-class RepeatFirstHard(RepeatFirst):
+class AutoencodeHard(Autoencode):
     def __init__(self):
-        super().__init__(num_decks=16)
+        super().__init__(num_decks=3)

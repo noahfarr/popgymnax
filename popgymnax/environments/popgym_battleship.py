@@ -10,22 +10,19 @@ from gymnax.environments import environment, spaces
 
 def is_valid_placement(board, row, col, direction, ship_size):
     """Check if a placement is valid without modifying the board."""
-    board_shape = board.shape
-
-    # Slice the board
-    horizontal_board = jax.lax.dynamic_slice(board, (row, col), (1, ship_size))
-    vertical_board = jax.lax.dynamic_slice(board, (row, col), (ship_size, 1))
-
-    # Check validities
-    horizontal_validity = jnp.logical_and(
-        col + ship_size <= board_shape[1], jnp.all(horizontal_board == 0)
+    board_size = board.shape[0]
+    offsets = jnp.arange(ship_size)
+    deltas = jnp.array([[0, 1], [0, -1], [1, 0], [-1, 0]])
+    drow, dcol = deltas[direction]
+    rows = row + drow * offsets
+    cols = col + dcol * offsets
+    in_bounds = jnp.all(
+        (rows >= 0) & (rows < board_size) & (cols >= 0) & (cols < board_size)
     )
-
-    vertical_validity = jnp.logical_and(
-        row + ship_size <= board_shape[0], jnp.all(vertical_board == 0)
-    )
-
-    return jnp.where(direction == 0, horizontal_validity, vertical_validity)
+    safe_rows = jnp.clip(rows, 0, board_size - 1)
+    safe_cols = jnp.clip(cols, 0, board_size - 1)
+    empty = jnp.all(board[safe_rows, safe_cols] == 0)
+    return jnp.logical_and(in_bounds, empty)
 
 
 vectorized_validity_check = jax.vmap(
@@ -34,28 +31,23 @@ vectorized_validity_check = jax.vmap(
         in_axes=(None, None, 0, None, None),
     ),
     in_axes=(None, None, None, 0, None),
-)  # Why
+)
 
 
 def place_ship_on_board(board, row, col, direction, ship_size):
     """Place a ship on the board at the given position and direction."""
-    # Generate the horizontal and vertical ship placements
-    horizontal_ship = jnp.ones((1, ship_size))
-    vertical_ship = jnp.ones((ship_size, 1))
-
-    # Create boards with the ship placed in each direction
-    horizontal_board = jax.lax.dynamic_update_slice(board, horizontal_ship, (row, col))
-    vertical_board = jax.lax.dynamic_update_slice(board, vertical_ship, (row, col))
-
-    # Use `lax.select` to choose the appropriate board based on the direction
-    updated_board = jax.lax.select(direction == 0, horizontal_board, vertical_board)
-
-    return updated_board
+    board_size = board.shape[0]
+    offsets = jnp.arange(ship_size)
+    deltas = jnp.array([[0, 1], [0, -1], [1, 0], [-1, 0]])
+    drow, dcol = deltas[direction]
+    rows = jnp.clip(row + drow * offsets, 0, board_size - 1)
+    cols = jnp.clip(col + dcol * offsets, 0, board_size - 1)
+    return board.at[rows, cols].set(1.0)
 
 
 def place_random_ship_on_board(rng, board, ship_size):
     size = board.shape[0]
-    dirs = jnp.array([0, 1])
+    dirs = jnp.arange(4)
     rows = jnp.arange(size)
     cols = jnp.arange(size)
     valid_spots = vectorized_validity_check(board, rows, cols, dirs, ship_size)
@@ -68,7 +60,6 @@ def place_random_ship_on_board(rng, board, ship_size):
         (rand_valid % (size * size)) // size,
         (rand_valid % (size * size)) % size,
     )
-    # print(is_valid_placement(board, row, col, direction, ship_size))
     board = place_ship_on_board(board, row, col, direction, ship_size)
     return board
 
@@ -95,6 +86,8 @@ class EnvParams:
 
 
 class Battleship(environment.Environment):
+    obs_requires_prev_action = True
+
     def __init__(self, board_size=8):
         super().__init__()
         self.board_size = board_size

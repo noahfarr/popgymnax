@@ -1,15 +1,15 @@
-from popjym.environments.meta_cartpole import NoisyStatelessMetaCartPole
-from popjym.environments.popgym_autoencode import (
+from popgymnax.environments.meta_cartpole import NoisyStatelessMetaCartPole
+from popgymnax.environments.popgym_autoencode import (
     AutoencodeEasy,
     AutoencodeHard,
     AutoencodeMedium,
 )
-from popjym.environments.popgym_battleship import (
+from popgymnax.environments.popgym_battleship import (
     BattleshipEasy,
     BattleshipHard,
     BattleshipMedium,
 )
-from popjym.environments.popgym_cartpole import (
+from popgymnax.environments.popgym_cartpole import (
     NoisyStatelessCartPoleEasy,
     NoisyStatelessCartPoleHard,
     NoisyStatelessCartPoleMedium,
@@ -17,32 +17,32 @@ from popjym.environments.popgym_cartpole import (
     StatelessCartPoleHard,
     StatelessCartPoleMedium,
 )
-from popjym.environments.popgym_concentration import (
+from popgymnax.environments.popgym_concentration import (
     ConcentrationEasy,
     ConcentrationHard,
     ConcentrationMedium,
 )
-from popjym.environments.popgym_count_recall import (
+from popgymnax.environments.popgym_count_recall import (
     CountRecallEasy,
     CountRecallHard,
     CountRecallMedium,
 )
-from popjym.environments.popgym_higherlower import (
+from popgymnax.environments.popgym_higherlower import (
     HigherLowerEasy,
     HigherLowerHard,
     HigherLowerMedium,
 )
-from popjym.environments.popgym_minesweeper import (
+from popgymnax.environments.popgym_minesweeper import (
     MineSweeperEasy,
     MineSweeperHard,
     MineSweeperMedium,
 )
-from popjym.environments.popgym_multiarmedbandit import (
+from popgymnax.environments.popgym_multiarmedbandit import (
     MultiarmedBanditEasy,
     MultiarmedBanditHard,
     MultiarmedBanditMedium,
 )
-from popjym.environments.popgym_pendulum import (
+from popgymnax.environments.popgym_pendulum import (
     NoisyStatelessPendulumEasy,
     NoisyStatelessPendulumHard,
     NoisyStatelessPendulumMedium,
@@ -50,12 +50,12 @@ from popjym.environments.popgym_pendulum import (
     StatelessPendulumHard,
     StatelessPendulumMedium,
 )
-from popjym.environments.popgym_repeat_first import (
+from popgymnax.environments.popgym_repeat_first import (
     RepeatFirstEasy,
     RepeatFirstHard,
     RepeatFirstMedium,
 )
-from popjym.environments.popgym_repeat_previous import (
+from popgymnax.environments.popgym_repeat_previous import (
     RepeatPreviousEasy,
     RepeatPreviousHard,
     RepeatPreviousMedium,

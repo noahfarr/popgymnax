@@ -21,6 +21,8 @@ class EnvParams:
 
 
 class MineSweeper(environment.Environment):
+    obs_requires_prev_action = True
+
     def __init__(self, dims=(4, 4), num_mines=2):
         super().__init__()
         self.dims = dims
@@ -29,6 +31,7 @@ class MineSweeper(environment.Environment):
         self.success_reward_scale = 1 / self.max_episode_length
         self.fail_reward_scale = -0.5 - self.success_reward_scale
         self.bad_action_reward_scale = -0.5 / (self.max_episode_length - 2)
+        self.obs_size = min(self.num_mines + 1, 10)
 
     @property
     def default_params(self) -> EnvParams:
@@ -41,21 +44,24 @@ class MineSweeper(environment.Environment):
         mine = state.mine_grid[action] == 1
         viewed = state.mine_grid[action] == 2
 
-        new_grid = state.mine_grid.at[action].set(2)
+        new_grid = jnp.where(
+            mine, state.mine_grid, state.mine_grid.at[action].set(2)
+        )
 
         reward = self.success_reward_scale
         reward = jnp.where(viewed, self.bad_action_reward_scale, reward)
         reward = jnp.where(mine, self.fail_reward_scale, reward)
 
-        terminated = state.timestep == self.max_episode_length
+        new_timestep = state.timestep + 1
+        terminated = new_timestep > self.max_episode_length
         terminated = jnp.where(mine, True, terminated)
-        terminated = jnp.logical_or(terminated, jnp.all(new_grid == 2))
+        terminated = jnp.logical_or(terminated, jnp.all(new_grid != 0))
 
-        obs = jnp.zeros((self.num_mines,))
+        obs = jnp.zeros((self.obs_size,))
         obs = obs.at[state.neighbor_grid[action]].set(1)
 
         new_state = EnvState(
-            timestep=state.timestep + 1,
+            timestep=new_timestep,
             mine_grid=new_grid,
             neighbor_grid=state.neighbor_grid,
         )
@@ -64,7 +70,6 @@ class MineSweeper(environment.Environment):
 
     def reset_env(self, key: chex.PRNGKey, params: EnvParams) -> Tuple[chex.Array, EnvState]:
         """Performs resetting of environment."""
-        # hidden_grid = jnp.zeros((params.dims[0] * params.dims[1],), dtype=jnp.int8)
         hidden_grid = jnp.zeros((self.dims[0] * self.dims[1],), dtype=jnp.int8)
         mines_flat = jax.random.choice(
             key, hidden_grid.shape[0], shape=(self.num_mines,), replace=False
@@ -82,19 +87,18 @@ class MineSweeper(environment.Environment):
             neighbor_grid=jnp.ravel(neighbor_grid),
         )
 
-        return jnp.zeros((self.num_mines,)), state
+        return jnp.zeros((self.obs_size,)), state
 
     def action_space(self, params: Optional[EnvParams] = None) -> spaces.Discrete:
         """Action space of the environment."""
-        # TODO: Multi-Discrete?
         return spaces.Discrete(np.prod(self.dims))
 
     def observation_space(self, params: EnvParams) -> spaces.Box:
         """Observation space of the environment."""
         return spaces.Box(
-            jnp.zeros((self.num_mines,)),
-            jnp.ones((self.num_mines,)),
-            (self.num_mines,),
+            jnp.zeros((self.obs_size,)),
+            jnp.ones((self.obs_size,)),
+            (self.obs_size,),
             dtype=jnp.float32,
         )
 

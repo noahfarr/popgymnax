@@ -63,7 +63,7 @@ exclude = [
 max-line-length=100
 max-cognitive-complexity=15
 import-order-style = "google"
-application-import-names = "popjym"
+application-import-names = "popgymnax"
 doctests = true
 docstring-convention = "google"
 per-file-ignores = "__init__.py:F401"
@@ -84,17 +84,17 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ['popjym*']
+include = ['popgymnax*']
 
 [tool.setuptools.dynamic]
-version = {attr = "popjym.__version__"}
+version = {attr = "popgymnax.__version__"}
 dependencies = {file = ["requirements/requirements.txt"]}
 optional-dependencies = {dev = { file = ["requirements/requirements-dev.txt"] }}
 
 [project]
-name = "popjym"
+name = "popgymnax"
 readme = "README.md"
-description = "POPJym: Partially Observable Process Gym in JAX"
+description = "popgymnax: Partially Observable Process Gym in JAX"
 authors = [
     {name = "Chris Lu"},
     {name = "Yannick Schroecker"},
@@ -125,5 +125,5 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/EdanToledo/popjym"
-"Bug Tracker" = "https://github.com/EdanToledo/popjym/issues"
+"Homepage" = "https://github.com/noahfarr/popgymnax"
+"Bug Tracker" = "https://github.com/noahfarr/popgymnax/issues"

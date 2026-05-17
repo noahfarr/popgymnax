@@ -1,16 +1,12 @@
+from functools import partial
+from typing import Optional, Tuple, Union
+
+import chex
 import jax
 import jax.numpy as jnp
 from flax import struct
-from gymnax.wrappers.purerl import (
-    GymnaxWrapper,
-    Optional,
-    Tuple,
-    Union,
-    chex,
-    environment,
-    partial,
-    spaces,
-)
+from gymnax.environments import environment, spaces
+from gymnax.wrappers.purerl import GymnaxWrapper
 
 
 class AliasPrevAction(GymnaxWrapper):

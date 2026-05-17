@@ -42,7 +42,7 @@ class HigherLower(environment.Environment):
         reward = jnp.where(next_value == curr_value, 0, reward)
 
         new_state = EnvState(state.timestep + 1, state.cards)
-        terminated = new_state.timestep == num_cards
+        terminated = new_state.timestep == num_cards - 1
         obs = self.get_obs(new_state)
 
         return obs, new_state, reward, terminated, {}
